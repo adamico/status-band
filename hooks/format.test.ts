@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'claude-code/testing'
 
-import { countdown, folderName, levelColor, meter, modelName } from './format'
+import { LAYOUTS, countdown, fit, folderName, levelColor, meter, modelName, widthOf } from './format'
 
 describe('format', () => {
   test('model names', async () => {
@@ -33,5 +33,32 @@ describe('format', () => {
     expect(countdown('2026-10-17T14:00:00Z', now)).toBe('3d4h')
     expect(countdown('2026-10-14T09:00:00Z', now)).toBeUndefined()
     expect(countdown(undefined, now)).toBeUndefined()
+  })
+})
+
+describe('fit', () => {
+  // The band in the screenshot: about 95 columns for its body.
+  const band = {
+    folder: '~/minecraft_mods/groundworks',
+    branch: 'main',
+    model: '◆ Opus 5.5 medium',
+    gauges: [
+      { label: 'ctx', value: '18%' },
+      { label: '5h', value: '18%', left: '1h26m' },
+      { label: '7d', value: '28%', left: '5d3h' },
+    ],
+  }
+
+  test('a wide window keeps the full band', async () => {
+    expect(fit(band, 200)).toEqual({ cells: 8, gap: 3, isFolderShort: false })
+  })
+
+  test('a 95-column band fits on one row', async () => {
+    const layout = fit(band, 95)
+    expect(widthOf(band, layout)).toBeLessThanOrEqual(95)
+  })
+
+  test('too narrow for any layout takes the last, which wraps', async () => {
+    expect(fit(band, 20)).toEqual(LAYOUTS.at(-1))
   })
 })

@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Git, Usage } from '../types'
-import { LIMIT_LABELS, countdown, folderName, levelColor, meter, modelName } from './format'
+import { LIMIT_LABELS, countdown, fit, folderName, levelColor, meter, modelName, shortFolder } from './format'
 
 const cwd = atom({ plugin: 'status-band', key: 'cwd' } as const, null)
 const git = atom({ plugin: 'status-band', key: 'git' } as const, null)
@@ -110,27 +110,29 @@ export const register: Register = on => {
       read($, now),
     ])
 
-    const gauge = (label: string, percent: number, resetsAt?: string) => {
-      const { full, empty } = meter(percent)
-      const left = countdown(resetsAt, time)
-
-      return (
-        <Text>
-          <Text dimColor>{`${label} `}</Text>
-          <Text color={levelColor(percent)}>{full}</Text>
-          <Text dimColor>{empty}</Text>
-          <Text bold color={levelColor(percent)}>{` ${Math.round(percent)}%`}</Text>
-          {left && <Text dimColor>{` ↻${left}`}</Text>}
-        </Text>
-      )
+    const branch = repo ? `${repo.branch}${repo.isDirty ? '*' : ''}` : undefined
+    const gauges = [
+      ...(figures.contextPercent === undefined ? [] : [{ label: 'ctx', percent: figures.contextPercent, left: undefined }]),
+      ...figures.limits.map(limit => ({
+        label: LIMIT_LABELS[limit.kind] ?? limit.kind,
+        percent: limit.percentUsed,
+        left: countdown(limit.resetsAt, time),
+      })),
+    ].map(g => ({ ...g, value: `${Math.round(g.percent)}%` }))
+    const band = {
+      folder: dir ?? undefined,
+      branch,
+      model: id ? `◆ ${modelName(id)}${level ? ` ${level}` : ''}` : undefined,
+      gauges,
     }
+    const layout = fit(band, e.props.bodyColumns)
 
     return (
-      <Box flexDirection="row" flexWrap="wrap" columnGap={3} marginTop={1} width={e.props.bodyColumns}>
+      <Box flexDirection="row" flexWrap="wrap" columnGap={layout.gap} marginTop={1} width={e.props.bodyColumns}>
         {dir && (
           <Text>
-            <Text bold color="suggestion">{dir}</Text>
-            {repo && <Text color={repo.isDirty ? 'warning' : 'success'}>{`  ${repo.branch}${repo.isDirty ? '*' : ''}`}</Text>}
+            <Text bold color="suggestion">{layout.isFolderShort ? shortFolder(dir) : dir}</Text>
+            {repo && <Text color={repo.isDirty ? 'warning' : 'success'}>{`  ${branch}`}</Text>}
           </Text>
         )}
         {id && (
@@ -139,10 +141,19 @@ export const register: Register = on => {
             {level && <Text italic dimColor>{` ${level}`}</Text>}
           </Text>
         )}
-        {figures.contextPercent !== undefined && gauge('ctx', figures.contextPercent)}
-        {figures.limits.map(limit =>
-          gauge(LIMIT_LABELS[limit.kind] ?? limit.kind, limit.percentUsed, limit.resetsAt),
-        )}
+        {gauges.map(gauge => {
+          const { full, empty } = meter(gauge.percent, layout.cells)
+
+          return (
+            <Text>
+              <Text dimColor>{`${gauge.label} `}</Text>
+              <Text color={levelColor(gauge.percent)}>{full}</Text>
+              <Text dimColor>{empty}</Text>
+              <Text bold color={levelColor(gauge.percent)}>{` ${gauge.value}`}</Text>
+              {gauge.left && <Text dimColor>{` ↻${gauge.left}`}</Text>}
+            </Text>
+          )
+        })}
       </Box>
     )
   })
