@@ -126,7 +126,7 @@ export const register: Register = on => {
     }
 
     return (
-      <Box flexDirection="row" flexWrap="wrap" columnGap={3} width={e.props.bodyColumns}>
+      <Box flexDirection="row" flexWrap="wrap" columnGap={3} marginTop={1} width={e.props.bodyColumns}>
         {dir && (
           <Text>
             <Text bold color="suggestion">{dir}</Text>
