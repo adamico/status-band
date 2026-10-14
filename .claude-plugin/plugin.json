@@ -1,0 +1,1 @@
+{ "name": "status-band", "version": "0.1.0", "description": "A band above the prompt with folder, git branch, model and effort, and colored meters for context and the 5-hour and weekly limits", "types": "./types/index.d.ts" }
