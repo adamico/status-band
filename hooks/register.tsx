@@ -36,11 +36,6 @@ async function tick($: EngineInterface) {
   await update($, now, () => time)
 }
 
-async function refreshGit($: EngineInterface) {
-  const repo = await lookUpGit($)
-  await update($, git, () => repo)
-}
-
 async function refreshPlace($: EngineInterface) {
   const [dir, home, repo] = await Promise.all([$.session.cwd(), $.env.get('HOME'), lookUpGit($)])
   await update($, cwd, () => folderName(dir, home))
@@ -81,9 +76,11 @@ export const register: Register = on => {
     return yield* next(e)
   })
 
+  // A pre-warmed session starts in a spare folder and is moved to its own
+  // without a CwdChanged, so each turn reads the folder again.
   on('turn.complete', async ($, e, next) => {
     const result = await next(e)
-    await refreshGit($)
+    await refreshPlace($)
 
     return result
   })
