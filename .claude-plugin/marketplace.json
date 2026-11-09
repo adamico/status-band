@@ -1,5 +1,13 @@
 {
   "name": "status-band",
-  "owner": { "name": "adamico" },
-  "plugins": [{ "name": "status-band", "source": "./" }]
+  "owner": {
+    "name": "adamico"
+  },
+  "description": "status-band: a band above the Claude Code prompt with folder, git branch, model and effort, and colored meters for context and the 5-hour and weekly limits",
+  "plugins": [
+    {
+      "name": "status-band",
+      "source": "./"
+    }
+  ]
 }
