@@ -1,6 +1,6 @@
 export type Limit = { kind: string; percentUsed: number; resetsAt?: string }
 
-export type Usage = { contextPercent?: number; limits: Limit[] }
+export type Usage = { contextPercent?: number; contextTokens?: number; limits: Limit[] }
 
 export type Git = { branch: string; isDirty: boolean }
 

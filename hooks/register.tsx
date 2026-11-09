@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Git, Usage } from '../types'
-import { LIMIT_LABELS, countdown, fit, folderName, levelColor, meter, modelName, shortFolder } from './format'
+import { LIMIT_LABELS, countdown, fit, folderName, levelColor, meter, modelName, shortFolder, tokenCount } from './format'
 
 const cwd = atom({ plugin: 'status-band', key: 'cwd' } as const, null)
 const git = atom({ plugin: 'status-band', key: 'git' } as const, null)
@@ -11,9 +11,10 @@ const effort = atom({ plugin: 'status-band', key: 'effort' } as const, null)
 const usage = atom({ plugin: 'status-band', key: 'usage' } as const, { limits: [] })
 const now = atom({ plugin: 'status-band', key: 'now' } as const, 0)
 
-function usageOf(e: { context: { percent?: number }; rateLimits: readonly Usage['limits'][number][] }): Usage {
+function usageOf(e: { context: { percent?: number; tokens?: number }; rateLimits: readonly Usage['limits'][number][] }): Usage {
   return {
     contextPercent: e.context.percent,
+    contextTokens: e.context.tokens,
     limits: e.rateLimits.map(({ kind, percentUsed, resetsAt }) => ({ kind, percentUsed, resetsAt })),
   }
 }
@@ -109,8 +110,9 @@ export const register: Register = on => {
 
     const branch = repo ? `${repo.branch}${repo.isDirty ? '*' : ''}` : undefined
     const gauges = [
-      ...(figures.contextPercent === undefined ? [] : [{ label: 'ctx', percent: figures.contextPercent, left: undefined }]),
+      ...(figures.contextPercent === undefined ? [] : [{ label: 'ctx', count: tokenCount(figures.contextTokens), percent: figures.contextPercent, left: undefined }]),
       ...figures.limits.map(limit => ({
+        count: undefined,
         label: LIMIT_LABELS[limit.kind] ?? limit.kind,
         percent: limit.percentUsed,
         left: countdown(limit.resetsAt, time),
@@ -144,6 +146,7 @@ export const register: Register = on => {
           return (
             <Text>
               <Text dimColor>{`${gauge.label} `}</Text>
+              {gauge.count && <Text>{`${gauge.count} `}</Text>}
               <Text color={levelColor(gauge.percent)}>{full}</Text>
               <Text dimColor>{empty}</Text>
               <Text bold color={levelColor(gauge.percent)}>{` ${gauge.value}`}</Text>

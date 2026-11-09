@@ -25,7 +25,7 @@ test('the band shows context and limits as they are measured', async ($, on) => 
 
   const ui = await $.ui.mount({ plugin: 'status-band', surface: 'terminal', ...BAND })
 
-  expect((await ui.find({ type: 'Box' }))?.text).toBe('ctx ▰▰▰▱▱▱▱▱ 34%5h ▰▰▰▰▰▰▰▱ 85%7d ▰▱▱▱▱▱▱▱ 9%')
+  expect((await ui.find({ type: 'Box' }))?.text).toBe('ctx 68k ▰▰▰▱▱▱▱▱ 34%5h ▰▰▰▰▰▰▰▱ 85%7d ▰▱▱▱▱▱▱▱ 9%')
   expect((await ui.find({ type: 'Text', text: /^ 85%$/ }))?.props.color).toBe('error')
   expect((await ui.find({ type: 'Text', text: /^ 34%$/ }))?.props.color).toBe('success')
 })

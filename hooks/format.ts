@@ -42,6 +42,16 @@ export const countdown = (resetsAt: string | undefined, now: number) => {
   return d > 0 ? `${d}d${h}h` : h > 0 ? `${h}h${String(m).padStart(2, '0')}m` : `${m}m`
 }
 
+// 850 → `850`, 68_000 → `68k`, 1_234_567 → `1.2M`; undefined when unknown.
+export const tokenCount = (tokens: number | undefined) =>
+  tokens === undefined
+    ? undefined
+    : tokens >= 1_000_000
+      ? `${Number((tokens / 1_000_000).toFixed(1))}M`
+      : tokens >= 1_000
+        ? `${Math.round(tokens / 1_000)}k`
+        : String(tokens)
+
 export const LIMIT_LABELS: Record<string, string> = { five_hour: '5h', seven_day: '7d', spend_limit: '$' }
 
 // How the band is drawn: meter cells, columns between parts, and the folder
@@ -57,7 +67,7 @@ export const LAYOUTS: readonly Layout[] = [
   { cells: 3, gap: 2, isFolderShort: true },
 ]
 
-export type Gauge = { label: string; value: string; left?: string }
+export type Gauge = { label: string; count?: string; value: string; left?: string }
 
 // The band's texts, all but the meters.
 export type Band = { folder?: string; branch?: string; model?: string; gauges: Gauge[] }
@@ -70,7 +80,7 @@ const placeText = (band: Band, layout: Layout) =>
     : `${layout.isFolderShort ? shortFolder(band.folder) : band.folder}${band.branch ? `  ${band.branch}` : ''}`
 
 export const gaugeText = (gauge: Gauge, cells: number) =>
-  `${gauge.label} ${'▰'.repeat(cells)} ${gauge.value}${gauge.left ? ` ↻${gauge.left}` : ''}`
+  `${gauge.label} ${gauge.count ? `${gauge.count} ` : ''}${'▰'.repeat(cells)} ${gauge.value}${gauge.left ? ` ↻${gauge.left}` : ''}`
 
 export const widthOf = (band: Band, layout: Layout) => {
   const parts = [placeText(band, layout), band.model, ...band.gauges.map(g => gaugeText(g, layout.cells))]

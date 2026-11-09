@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'claude-code/testing'
 
-import { LAYOUTS, countdown, fit, folderName, levelColor, meter, modelName, widthOf } from './format'
+import { LAYOUTS, countdown, fit, folderName, levelColor, meter, modelName, tokenCount, widthOf } from './format'
 
 describe('format', () => {
   test('model names', async () => {
@@ -9,6 +9,17 @@ describe('format', () => {
     expect(modelName('claude-haiku-4-5-20251001')).toBe('Haiku 4.5')
     expect(modelName('claude-fable-5-1')).toBe('Fable 5.1')
     expect(modelName('opus')).toBe('opus')
+  })
+
+  test('token counts', async () => {
+    expect(tokenCount(undefined)).toBeUndefined()
+    expect(tokenCount(0)).toBe('0')
+    expect(tokenCount(850)).toBe('850')
+    expect(tokenCount(999)).toBe('999')
+    expect(tokenCount(1_000)).toBe('1k')
+    expect(tokenCount(68_000)).toBe('68k')
+    expect(tokenCount(1_000_000)).toBe('1M')
+    expect(tokenCount(1_234_567)).toBe('1.2M')
   })
 
   test('folders', async () => {
